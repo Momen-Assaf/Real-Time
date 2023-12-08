@@ -1,8 +1,10 @@
 CC = gcc
 CFLAGS = -Wall
 
-all: parent customer cashier 
+run: all
 	./parent
+
+all: parent customer cashier 
 
 parent: parent.c
 	$(CC) $(CFLAGS) -o parent parent.c
