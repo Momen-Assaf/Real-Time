@@ -1,8 +1,8 @@
-arrival_rate_range: 1.0, 5.0
-shopping_time_range: 10, 30
-scanning_time_range: 0.5, 2.0
-behavior_decay_time: 60
-customer_impatience_threshold: 20
+arrival_rate_range: 2, 6
+shopping_time_range: 1, 5 
+scanning_time_range: 0.1,0.3 
+behavior_decay_time: 20
+customer_impatience_threshold: 10
 cashier_leave_threshold: 4
 customer_leave_threshold: 20
 income_threshold: 1000

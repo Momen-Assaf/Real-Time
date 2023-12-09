@@ -17,3 +17,6 @@ cashier: cashier.c
 
 clean:
 	rm -f parent customer cashier
+
+items: all
+	./parent items

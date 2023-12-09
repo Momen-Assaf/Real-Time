@@ -1,23 +1,23 @@
-Product Name,Quantity,Price
-Milk,3,2
-Bread,2,1
-Eggs,24,1
-Bananas,2,1
-Chicken Breast,750,5
-Tomatoes,1,2
-Toothpaste,2,3
-Shampoo,2,5
-Cheese,1,4
-Rice,10,10
-Orange Juice,2,3
-Cereal,1,4
-Apples,2,2
-Pasta,1,1
-Ground Beef,2,7
-Yogurt,6,3
-Butter,1,2
-Coffee,1,6
-Sugar,2,1
-Frozen Pizza,2,5
-Spinach,1,1
-Lemon,8,1
+Product_Name Quantity Price
+Milk 13 2
+Bread 22 1
+Eggs 24 1
+Bananas 52 1
+ChickenBreast 50 5
+Tomatoes 18 2
+Toothpaste 21 3
+Shampoo 22 5
+Cheese 19 4
+Rice 50 10
+OrangeJuice 10 3
+Cereal 8 4
+Apples 60 2
+Pasta 20 1
+GroundBeef 60 7
+Yogurt 15 3
+Butter 6 2
+Coffee 20 6
+Sugar 28 1
+FrozenPizza 12 5
+Spinach 100 1
+Lemon 80 1
