@@ -9,7 +9,6 @@
 #include <signal.h>
 
 #define SHM_SIZE 1024
-char *shm;
 
 void displayProductData(char *data)
 {

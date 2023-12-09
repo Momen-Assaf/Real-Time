@@ -32,7 +32,7 @@ int main(int argc, char *argv[])
 
     pid_t pid;
     int shmid;
-    char *s;
+    char *shm,*s;
 
     FILE *items = fopen(argv[1], "r");
     if (items == NULL)
@@ -125,6 +125,9 @@ int main(int argc, char *argv[])
                 // Additional print statement to trace modification
                 printf("Child modified: %s %d %d\n", product, quantityAfterRemoval, price);
             }
+            else{
+                offset += snprintf(modifiedData + offset, SHM_SIZE - offset, "%s %d %d\n", product, quantity, price);
+            }
             token = strtok(NULL, "\n");
         }
 
@@ -133,10 +136,10 @@ int main(int argc, char *argv[])
         return 0;
 
     default:
-        sleep(2);
+        sleep(1);
 
         // Display product data after child modification
-        printf("Remaining Products in Store:\n");
+        printf("\nRemaining Products in Store:\n");
         displayProductData(shm);
 
         endRun(shmid, shm, pid);
