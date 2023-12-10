@@ -64,5 +64,6 @@
     "ranges": "c",
     "span": "c",
     "unistd.h": "c"
-  }
+  },
+  "C_Cpp.errorSquiggles": "disabled"
 }

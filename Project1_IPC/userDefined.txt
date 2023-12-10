@@ -1,4 +1,4 @@
-arrival_rate_range: 2, 6
+arrival_rate_range: 1, 3
 shopping_time_range: 1, 5 
 scanning_time_range: 0.1,0.3 
 behavior_decay_time: 20
