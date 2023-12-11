@@ -1,6 +1,13 @@
 #include "header.h"
 
-void endRun(int shmid, char *shm, pid_t customer_id[20])
+union semun
+{
+    int val;
+    struct semid_ds *buf;
+    ushort *array;
+};
+
+void endRun(int shmid, char *shm, pid_t customer_id[MAX_CUS], int semid)
 {
     // Detach the shared memory segment
     if (shmdt(shm) == -1)
@@ -15,14 +22,21 @@ void endRun(int shmid, char *shm, pid_t customer_id[20])
         perror("shmctl");
         exit(EXIT_FAILURE);
     }
-    for (int i = 0; i < 20; i++)
-    {
-        if (kill(customer_id[i], SIGTERM) == -1)
-        {
-            perror("kill");
-            exit(EXIT_FAILURE);
-        }
+
+    // Cleanup semaphore
+    if (semctl(semid, 0, IPC_RMID) == -1) {
+        perror("semctl");
+        exit(EXIT_FAILURE);
     }
+
+    // for (int i = 0; i < MAX_CUS; i++)
+    // {
+    //     if (kill(customer_id[i], SIGTERM) == -1)
+    //     {
+    //         perror("kill");
+    //         exit(EXIT_FAILURE);
+    //     }
+    // }
 }
 int main(int argc, char *argv[])
 {
@@ -34,7 +48,7 @@ int main(int argc, char *argv[])
 
     int shmid;
     char *shm, *s;
-    pid_t customer_id[20], parent_id;
+    pid_t customer_id[MAX_CUS], parent_id;
 
     FILE *items = fopen(argv[1], "r");
     if (items == NULL)
@@ -98,7 +112,6 @@ int main(int argc, char *argv[])
     {
         perror("Error reading file");
         fclose(items);
-        endRun(shmid, shm, customer_id);
         return -5;
     }
 
@@ -113,9 +126,25 @@ int main(int argc, char *argv[])
 
     parent_id = getpid();
 
-    for (int i = 0; i < 20; i++)
+    int semid = semget(SEM_KEY, 1, IPC_CREAT | 0666);
+    if (semid == -1)
     {
-        srand((unsigned int)getpid());
+        perror("semget");
+        exit(EXIT_FAILURE);
+    }
+
+    // Set initial values for the semaphores (you can adjust as needed)
+    union semun arg;
+    arg.val = 1;
+    if (semctl(semid, 0, SETVAL, arg) == -1)
+    {
+        perror("semctl");
+        exit(EXIT_FAILURE);
+    }
+    int t = 0;
+    for (int i = 0; i < MAX_CUS; i++)
+    {
+        srand(time(NULL) + getpid());
         customer_id[i] = fork();
         int arrival_time = arrival_rate_min + rand() % (arrival_rate_max - arrival_rate_min + 1);
         sleep(arrival_time);
@@ -127,6 +156,8 @@ int main(int argc, char *argv[])
             break;
 
         case 0: // CUSTOMER
+            
+            waitSemaphore(semid,0);
 
             char *token = strtok(shm, "\n");
             char modifiedData[SHM_SIZE];
@@ -137,7 +168,7 @@ int main(int argc, char *argv[])
                 int quantity, price;
                 char product[20];
                 sscanf(token, "%s %d %d", product, &quantity, &price);
-                srand((unsigned int)getpid());
+                
                 // Remove random quantity between 0 and 5
                 int quantityToRemove = rand() % 4;
                 if (quantityToRemove > 0)
@@ -165,19 +196,45 @@ int main(int argc, char *argv[])
 
             // Copy the modified data back to shared memory
             strcpy(shm, modifiedData);
+            
+            signalSemaphore(semid,0);
+            exit(0);
 
-            // Display product data after child modification
-            printf("\nRemaining Products in Store:\n");
-            displayProductData(shm);
-
-            return 0;
         }
-        printf("iam the parent pid %d created child with %d id",parent_id, customer_id[i]);
-        // Display product data after child modification
-        printf("\nRemaining Products in Store:\n");
-        displayProductData(shm);
     }
-    if( parent_id == getpid())endRun(shmid, shm, customer_id);
+    waitpid(customer_id[MAX_CUS - 1],NULL,0);
+
+    // Display product data after child modification
+    printf("\nRemaining Products in Store:\n");
+    displayProductData(shm);
     
+    endRun(shmid, shm, customer_id, semid);
+
     return 0;
+}
+
+// Perform wait operation on the semaphore
+void waitSemaphore(int semid, int sem_num) {
+    struct sembuf operation;
+    operation.sem_num = sem_num;
+    operation.sem_op = -1; // Decrement semaphore value
+    operation.sem_flg = 0; // No special flags
+
+    if (semop(semid, &operation, 1) == -1) {
+        perror("semop");
+        exit(EXIT_FAILURE);
+    }
+}
+
+// Perform signal operation on the semaphore
+void signalSemaphore(int semid, int sem_num) {
+    struct sembuf operation;
+    operation.sem_num = sem_num;
+    operation.sem_op = 1; // Increment semaphore value
+    operation.sem_flg = 0; // No special flags
+
+    if (semop(semid, &operation, 1) == -1) {
+        perror("semop");
+        exit(EXIT_FAILURE);
+    }
 }

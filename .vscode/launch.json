@@ -8,8 +8,8 @@
       "args": [],
       "stopAtEntry": false,
       "externalConsole": false,
-      "cwd": "/home/nemom/Desktop/Real-Time/Project1_IPC",
-      "program": "/home/nemom/Desktop/Real-Time/Project1_IPC/build/Debug/outDebug",
+      "cwd": "/home/nemom/Desktop/Real-Time",
+      "program": "/home/nemom/Desktop/Real-Time/build/Debug/outDebug",
       "MIMode": "gdb",
       "miDebuggerPath": "gdb",
       "setupCommands": [
