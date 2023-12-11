@@ -158,7 +158,8 @@ int main(int argc, char *argv[])
         case 0: // CUSTOMER
             
             waitSemaphore(semid,0);
-
+            int random_shopping_time = shopping_time_min + rand() % (shopping_time_max - shopping_time_min + 1);
+            sleep(random_shopping_time);
             char *token = strtok(shm, "\n");
             char modifiedData[SHM_SIZE];
             int offset = 0;
