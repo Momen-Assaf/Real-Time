@@ -10,10 +10,15 @@
 #include <signal.h>
 #include <time.h>
 #include <sys/sem.h>
+#include <sys/stat.h>
+#include <mqueue.h>
 
 #define SHM_SIZE 1024
 #define SEM_KEY 1234 
 #define MAX_CUS 3
+#define MSG_SIZE 1024
+
+#define QUEUE_NAME "/items_picked"
 
 
 void displayProductData(char *data)
