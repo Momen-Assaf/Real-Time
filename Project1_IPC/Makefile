@@ -1,16 +1,13 @@
-CC = gcc
-CFLAGS = 
-
 run: all
 	./parent
 
 all: parent cashier 
 
 parent: parent.c
-	$(CC) $(CFLAGS) -o parent parent.c
+	gcc -o parent parent.c
 
 cashier: cashier.c
-	$(CC) $(CFLAGS) -o cashier cashier.c
+	gcc -o cashier cashier.c
 
 clean:
 	rm -f parent cashier
