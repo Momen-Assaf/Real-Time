@@ -162,7 +162,7 @@ int main(int argc, char *argv[])
             sleep(random_shopping_time);
             char *token = strtok(shm, "\n");
             char modifiedData[SHM_SIZE];
-            int offset = 0, test = 0;
+            int offset = 0, msg_offset = 0;
             char msg[MSG_SIZE];
 
             while (token != NULL)
@@ -186,7 +186,7 @@ int main(int argc, char *argv[])
 
                     // Update the data in modified buffer
                     offset += snprintf(modifiedData + offset, SHM_SIZE - offset, "%s %d %d\n", product, quantityAfterRemoval, price);
-                    test += snprintf(msg + test, SHM_SIZE - test, "%s %d %d\n", product, quantityToRemove, price);
+                    msg_offset += snprintf(msg + msg_offset, SHM_SIZE - msg_offset, "%s %d %d\n", product, quantityToRemove, price);
 
                     // Additional print statement to trace modification
                     printf("Child modified: %s %d %d\n", product, quantityAfterRemoval, price);
@@ -194,7 +194,7 @@ int main(int argc, char *argv[])
                 else
                 {
                     offset += snprintf(modifiedData + offset, SHM_SIZE - offset, "%s %d %d\n", product, quantity, price);
-                    test += snprintf(msg + test, SHM_SIZE - test, "%s 0 %d\n", product, price);
+                    msg_offset += snprintf(msg + msg_offset, SHM_SIZE - msg_offset, "%s 0 %d\n", product, price);
                 }
                 token = strtok(NULL, "\n");
             }
