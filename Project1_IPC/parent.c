@@ -2,7 +2,6 @@
 
 int profitGoalReached = 0;
 
-
 union semun
 {
     int val;
@@ -32,9 +31,10 @@ void endRun(int shmid, char *shm, pid_t customer_id[MAX_CUS], int semid)
         perror("semctl");
         exit(EXIT_FAILURE);
     }
-    for( int i = 0; i < MAX_CASHIER; i++){
+    for (int i = 0; i < MAX_CASHIER; i++)
+    {
         // Destroy the message queue
-        msgctl(i+1, IPC_RMID, NULL);
+        msgctl(i + 1, IPC_RMID, NULL);
     }
 
     // for (int i = 0; i < MAX_CUS; i++)
@@ -164,12 +164,33 @@ int main(int argc, char *argv[])
                 msgrcv(msgid, &message, sizeof(message), 1, 0);
                 printf("\nData received is:\n%s\n", message.msg_data);
 
-                // const char *transactions = message.msg_data;
+                // Count the number of lines in the msg
+                int numLines = 0;
+                for (int i = 0; i < strlen(message.msg_data); i++)
+                {
+                    if (message.msg_data[i] == '\n')
+                    {
+                        numLines++;
+                    }
+                }
 
-                // for (int j = 0; j < sizeof(transactions) / sizeof(transactions[0]); ++j)
-                // {
-                //     processTransaction(&cashiers[i], transactions[j]);
-                // }
+                // Allocate memory for the transactions array
+                const char *transactions[numLines];
+
+                // Tokenize the msg string and populate the transactions array
+                char *msgCopy = strdup(message.msg_data); // Create a copy of msg to avoid modifying the original
+                char *token = strtok(msgCopy, "\n");
+                int index = 0;
+                while (token != NULL)
+                {
+                    transactions[index++] = token;
+                    token = strtok(NULL, "\n");
+                }
+                
+                for (int j = 0; j < sizeof(transactions) / sizeof(transactions[0]); ++j)
+                {
+                    processTransaction(&cashiers[i], transactions[j]);
+                }
             }
 
             break;
@@ -258,7 +279,7 @@ int main(int argc, char *argv[])
             key_t best;
             int lowest = 999;
             for (int k = 0; k < MAX_CASHIER; k++)
-            {   
+            {
                 struct msqid_ds buf;
                 msgid[k] = msgget(k + 1, 0666 | IPC_CREAT);
                 // Get information about the message queue
@@ -267,15 +288,16 @@ int main(int argc, char *argv[])
                     perror("msgctl");
                     exit(EXIT_FAILURE);
                 }
-                if(buf.msg_qnum < lowest){
+                if (buf.msg_qnum < lowest)
+                {
                     lowest = buf.msg_qnum;
                     best = msgid[k];
                 }
             }
             message.msg_type = 1;
             strcpy(message.msg_data, msg);
-            msgsnd(best, &message ,sizeof(message),0);
-            //printf("%s", msg);
+            msgsnd(best, &message, sizeof(message), 0);
+            // printf("%s", msg);
 
             // Copy the modified data back to shared memory
             strcpy(shm, modifiedData);
@@ -287,7 +309,8 @@ int main(int argc, char *argv[])
     }
     waitpid(customer_id[MAX_CUS - 1], NULL, 0);
 
-    for (int i = 0; i < MAX_CASHIER && !profitGoalReached; ++i) {
+    for (int i = 0; i < MAX_CASHIER && !profitGoalReached; ++i)
+    {
         wait(NULL);
     }
     // Display product data after child modification
