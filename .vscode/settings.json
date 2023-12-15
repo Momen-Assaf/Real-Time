@@ -67,7 +67,9 @@
     "sem.h": "c",
     "signal.h": "c",
     "mqueue.h": "c",
-    "msg.h": "c"
+    "msg.h": "c",
+    "time.h": "c",
+    "semaphore.h": "c"
   },
   "C_Cpp.errorSquiggles": "disabled"
 }
