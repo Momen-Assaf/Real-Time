@@ -1,10 +1,13 @@
 run: all
 	./parent
 
-all: parent  
+all: parent #ogl
 
 parent: parent.c
 	gcc -o parent parent.c
+
+# ogl: ogl.c
+# 	gcc -o my_program oGl.c -lGL -lGLU -lglut -lm
 
 clean:
 	rm -f parent

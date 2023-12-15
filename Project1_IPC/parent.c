@@ -80,6 +80,54 @@ int main(int argc, char *argv[])
         exit(EXIT_FAILURE);
     }
 
+    // Create or get shared memory segment for leftCashier
+    leftCashier = shmget(LEFT_CASHIER_KEY, sizeof(int), IPC_CREAT | 0666);
+    if (leftCashier == -1)
+    {
+        perror("shmget leftCashier");
+        exit(EXIT_FAILURE);
+    }
+
+    // Attach shared memory segment for leftCashier
+    leftCashierValue = (int *)shmat(leftCashier, NULL, 0);
+    if (leftCashierValue == (int *)(-1))
+    {
+        perror("shmat leftCashier");
+        exit(EXIT_FAILURE);
+    }
+
+    // Create or get shared memory segment for finishCondition
+    finishCondition = shmget(FINISH_CONDITION_KEY, sizeof(int), IPC_CREAT | 0666);
+    if (finishCondition == -1)
+    {
+        perror("shmget finishCondition");
+        exit(EXIT_FAILURE);
+    }
+
+    // Attach shared memory segment for finishCondition
+    finishConditionValue = (int *)shmat(finishCondition, NULL, 0);
+    if (finishConditionValue == (int *)(-1))
+    {
+        perror("shmat finishCondition");
+        exit(EXIT_FAILURE);
+    }
+
+    // Create or get shared memory segment for finishCondition
+    leftCustomer = shmget(LEFT_CUSTOMER_KEY, sizeof(int), IPC_CREAT | 0666);
+    if (leftCustomer == -1)
+    {
+        perror("shmget leftCustomer");
+        exit(EXIT_FAILURE);
+    }
+
+    // Attach shared memory segment for finishCondition
+    leftCustomerValue = (int *)shmat(leftCustomer, NULL, 0);
+    if (leftCustomerValue == (int *)(-1))
+    {
+        perror("shmat leftCustomer");
+        exit(EXIT_FAILURE);
+    }
+
     char fileData[SHM_SIZE];
 
     // Read and discard the first line
@@ -129,6 +177,7 @@ int main(int argc, char *argv[])
             while (1 == 1)
             {
                 msgrcv(msgid, &message, sizeof(message), 1, 0);
+                // msgsnd(msgid,&empty_message,sizeof(empty_message),0);
                 // printf("\nData received is:\n%s\n", message.msg_data);
 
                 // Count the number of lines in the msg
@@ -150,17 +199,18 @@ int main(int argc, char *argv[])
                 int index = 0;
                 while (token != NULL)
                 {
-                    double scanning_time = ((double)rand() / RAND_MAX) * (scanning_time_max - scanning_time_min) + scanning_time_min;
-                    sleep(scanning_time);
-
                     transactions[index++] = token;
                     token = strtok(NULL, "\n");
                 }
-
+                double scanning_time = ((double)rand() / RAND_MAX) * (scanning_time_max - scanning_time_min) + scanning_time_min;
+                sleep(scanning_time*numLines);
                 for (int j = 0; j < sizeof(transactions) / sizeof(transactions[0]); ++j)
                 {
+                    
                     processTransaction(&cashiers[i], transactions[j], income_threshold, behavior_decay_time);
                 }
+                cashiers[i].behavior -= behavior_decay_time;
+                printf("\nCashier %d with behaviour %d made : %d profit\n", cashiers[i].cashier_id, cashiers[i].behavior, cashiers[i].totalProfit);
             }
             exit(0);
         }
@@ -262,6 +312,9 @@ int main(int argc, char *argv[])
 
                 message.msg_type = 1;
                 strcpy(message.msg_data, msg);
+                signal(SIGALRM, alarm_handler);
+
+                alarm(customer_impatience_threshold);
                 msgsnd(best, &message, sizeof(message), 0);
 
                 // Copy the modified data back to shared memory
@@ -272,16 +325,20 @@ int main(int argc, char *argv[])
                 exit(0);
             }
 
-            int left_Cashiers;
-            if (left_Cashiers >= cashier_leave_threshold)
+            if ((*leftCustomerValue) >= customer_leave_threshold)
             {
-                printf("%d", left_Cashiers);
+                printf("Customer leave threshold reached\n");
+                exit(0);
+            }
+            if ((*leftCashierValue) >= cashier_leave_threshold)
+            {
+                printf("\nCashier leave threshold reached\n");
                 exit(0);
             }
 
-            int finish_Condition = 0;
-            if (finish_Condition >= 1)
+            if ((*finishConditionValue) >= 1)
             {
+                printf("\nFinish condition reached\n");
                 exit(0);
             }
         }
@@ -290,7 +347,6 @@ int main(int argc, char *argv[])
 
     printf("\nRemaining Products in Store:\n");
     displayProductData(shm);
-    sleep(1);
 
     endRun();
 
@@ -340,27 +396,22 @@ void processTransaction(struct cashier *cashier, const char *transaction, int in
     {
         return;
     }
-
-    // Simulate behavior decrease over time
-    for (int i = 0; i < behavior_decay_time; ++i)
-    {
-        cashier->behavior--; // Decrease behavior over time
-    }
-
     // Calculate profit after behavior decrease
     int transactionProfit = numberOfItems * price;
     cashier->totalProfit += transactionProfit;
 
-    // Display transaction details
-    printf("Cashier %d processed %d items of %s for $%d (Profit: $%d, Behavior: %d)\n",
-           cashier->cashier_id, numberOfItems, product, price, transactionProfit, cashier->behavior);
+    
+
+    // // Display transaction details
+    // printf("Cashier %d processed %d items of %s for $%d (Profit: $%d, Behavior: %d)\n",
+    //        cashier->cashier_id, numberOfItems, product, price, transactionProfit, cashier->behavior);
 
     // Check if profit goal is reached by any cashier
     if (cashier->totalProfit >= income_threshold)
     {
         printf("Cashier %d has reached the profit goal. Ending Run.\n", cashier->cashier_id);
         // kill(helper_id, SIGTERM);
-        
+        (*finishConditionValue)++;
         exit(0); // Terminate the child process
     }
 
@@ -369,26 +420,13 @@ void processTransaction(struct cashier *cashier, const char *transaction, int in
     {
         printf("Cashier %d has exhausted behavior and is leaving. Total profit: $%d\n",
                cashier->cashier_id, cashier->totalProfit);
-        
+        (*leftCashierValue)++;
         exit(0); // Terminate the child process
     }
 }
 
 void endRun()
 {
-    for (int i = 0; i < MAX_CASHIER; i++)
-    {
-        if (kill(cashier_id[i], SIGTERM) == -1)
-        {
-        }
-    }
-
-    for (int i = 0; i < MAX_CUS; i++)
-    {
-        if (kill(customer_id[i], SIGTERM) == -1)
-        {
-        }
-    }
 
     // Detach the shared memory segment
     if (shmdt(shm) == -1)
@@ -404,9 +442,9 @@ void endRun()
         exit(EXIT_FAILURE);
     }
 
-    for (int i = 0; i <= 50; i++) // delete message queue
+    for (int i = 0; i < MAX_CUS; i++)
     {
-        if (msgctl(i, IPC_RMID, NULL) == -1)
+        if (kill(customer_id[i], SIGTERM) == -1)
         {
         }
     }
@@ -416,5 +454,60 @@ void endRun()
     {
         perror("semctl");
         exit(EXIT_FAILURE);
+    }
+
+    // Detach the shared memory segment for leftCashier
+    if (shmdt(leftCashierValue) == -1)
+    {
+        perror("shmdt leftCashier");
+        exit(EXIT_FAILURE);
+    }
+
+    // Delete the shared memory segment
+    if (shmctl(leftCashier, IPC_RMID, NULL) == -1)
+    {
+        perror("shmctl");
+        exit(EXIT_FAILURE);
+    }
+
+    // Detach the shared memory segment for leftCUstomer
+    if (shmdt(leftCustomerValue) == -1)
+    {
+        perror("shmdt finishCondition");
+        exit(EXIT_FAILURE);
+    }
+
+    // Delete the shared memory segment
+    if (shmctl(leftCustomer, IPC_RMID, NULL) == -1)
+    {
+        perror("shmctl");
+        exit(EXIT_FAILURE);
+    }
+
+    // Detach the shared memory segment for finishCondition
+    if (shmdt(finishConditionValue) == -1)
+    {
+        perror("shmdt finishCondition");
+        exit(EXIT_FAILURE);
+    }
+    // Delete the shared memory segment
+    if (shmctl(finishCondition, IPC_RMID, NULL) == -1)
+    {
+        perror("shmctl");
+        exit(EXIT_FAILURE);
+    }
+
+    for (int i = 0; i <= 70; i++) // delete message queue
+    {
+        if (msgctl(i, IPC_RMID, NULL) == -1)
+        {
+        }
+    }
+
+    for (int i = 0; i < MAX_CASHIER; i++)
+    {
+        if (kill(cashier_id[i], SIGTERM) == -1)
+        {
+        }
     }
 }
