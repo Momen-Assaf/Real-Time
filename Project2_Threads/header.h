@@ -17,3 +17,5 @@
 #include <GL/glut.h>
 #include <math.h>
 #include <stdbool.h>
+
+pid_t ogl_id , shelvteam_id[3];
