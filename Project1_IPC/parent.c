@@ -146,6 +146,19 @@ int main(int argc, char *argv[])
     displayProductData(shm);
 
     close(items);
+    ogl_id = fork();
+    switch (ogl_id)
+    {
+    case -1:
+        perror("fork");
+        exit(EXIT_FAILURE);
+        break;
+
+    case 0:
+        execlp("./my_program", "ogl", NULL);
+        perror("execlp");
+        exit(EXIT_FAILURE);
+    }
 
     parent_id = getpid();
 
@@ -203,10 +216,10 @@ int main(int argc, char *argv[])
                     token = strtok(NULL, "\n");
                 }
                 double scanning_time = ((double)rand() / RAND_MAX) * (scanning_time_max - scanning_time_min) + scanning_time_min;
-                sleep(scanning_time*numLines);
+                sleep(scanning_time * numLines);
                 for (int j = 0; j < sizeof(transactions) / sizeof(transactions[0]); ++j)
                 {
-                    
+
                     processTransaction(&cashiers[i], transactions[j], income_threshold, behavior_decay_time);
                 }
                 cashiers[i].behavior -= behavior_decay_time;
@@ -320,6 +333,13 @@ int main(int argc, char *argv[])
                 // Copy the modified data back to shared memory
                 strcpy(shm, modifiedData);
 
+                FILE *file = fopen("ogl.txt", "w"); // Open a file in write mode
+
+                if (file != NULL)
+                {
+                    fprintf(file, "%d", best); // Write the integer value to the file
+                    fclose(file);              // Close the file
+                }
                 signalSemaphore(semid, 0);
 
                 exit(0);
@@ -400,8 +420,6 @@ void processTransaction(struct cashier *cashier, const char *transaction, int in
     int transactionProfit = numberOfItems * price;
     cashier->totalProfit += transactionProfit;
 
-    
-
     // // Display transaction details
     // printf("Cashier %d processed %d items of %s for $%d (Profit: $%d, Behavior: %d)\n",
     //        cashier->cashier_id, numberOfItems, product, price, transactionProfit, cashier->behavior);
@@ -439,20 +457,6 @@ void endRun()
     if (shmctl(shmid, IPC_RMID, NULL) == -1)
     {
         perror("shmctl");
-        exit(EXIT_FAILURE);
-    }
-
-    for (int i = 0; i < MAX_CUS; i++)
-    {
-        if (kill(customer_id[i], SIGTERM) == -1)
-        {
-        }
-    }
-
-    // Cleanup semaphore
-    if (semctl(semid, 0, IPC_RMID) == -1)
-    {
-        perror("semctl");
         exit(EXIT_FAILURE);
     }
 
@@ -496,17 +500,30 @@ void endRun()
         perror("shmctl");
         exit(EXIT_FAILURE);
     }
-
-    for (int i = 0; i <= 70; i++) // delete message queue
+    for (int i = 0; i <= 100; i++) // delete message queue
     {
         if (msgctl(i, IPC_RMID, NULL) == -1)
         {
         }
     }
 
+    // Cleanup semaphore
+    if (semctl(semid, 0, IPC_RMID) == -1)
+    {
+        perror("semctl");
+        exit(EXIT_FAILURE);
+    }
+
     for (int i = 0; i < MAX_CASHIER; i++)
     {
         if (kill(cashier_id[i], SIGTERM) == -1)
+        {
+        }
+    }
+
+    for (int i = 0; i < MAX_CUS; i++)
+    {
+        if (kill(customer_id[i], SIGTERM) == -1)
         {
         }
     }

@@ -14,19 +14,21 @@
 #include <mqueue.h>
 #include <sys/msg.h>
 #include <semaphore.h>
+#include <GL/glut.h>
+#include <math.h>
+#include <stdbool.h>
 
 #define SHM_SIZE 4096
 #define SEM_KEY 1234
-#define MAX_CUS 50
-#define MAX_CASHIER 3
+#define MAX_CUS 5
+#define MAX_CASHIER 5
 #define MSG_SIZE 4096
 #define FLAG_KEY 23
-
 #define LEFT_CASHIER_KEY 1234
 #define LEFT_CUSTOMER_KEY 4321
 #define FINISH_CONDITION_KEY 5678
 
-pid_t customer_id[MAX_CUS], cashier_id[MAX_CASHIER], parent_id, helper_id;
+pid_t customer_id[MAX_CUS], cashier_id[MAX_CASHIER], parent_id, helper_id, ogl_id;
 int shmid, semid;
 char *shm;
 
