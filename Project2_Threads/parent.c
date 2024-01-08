@@ -2,12 +2,12 @@
 
 int main(int argc, char *argv[])
 {
-    int Shelving_Teams = 0;
-    int Employees_Number = 0;
-    int Shelf_drop_Threshold = 0;
-    int Simulation_Time_Threshold = 0;
+    int Shelving_Teams, Employees_Number, Shelf_drop_Threshold, Simulation_Time_Threshold = 0;
+
+    // function that reads the userDefined from header.h
     readUserDefined(&Shelving_Teams, &Employees_Number, &Shelf_drop_Threshold, &Simulation_Time_Threshold);
 
+    // ogl fork
     ogl_id = fork();
 
     if (ogl_id < 0)
@@ -21,6 +21,8 @@ int main(int argc, char *argv[])
         perror("Error opening ogl process:");
         exit(EXIT_FAILURE);
     }
+
+    //shelving teams fork
     pid_t shelvteam_id[Shelving_Teams];
 
     for (int i = 0; i < Shelving_Teams; i++)
@@ -40,6 +42,7 @@ int main(int argc, char *argv[])
         }
     }
 
+    // customers fork
     while (1)
     {
         sleep(2);
