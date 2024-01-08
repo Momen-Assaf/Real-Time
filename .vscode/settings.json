@@ -70,7 +70,8 @@
     "msg.h": "c",
     "time.h": "c",
     "semaphore.h": "c",
-    "string.h": "c"
+    "string.h": "c",
+    "stdbool.h": "c"
   },
   "C_Cpp.errorSquiggles": "disabled"
 }

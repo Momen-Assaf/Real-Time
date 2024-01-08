@@ -18,7 +18,18 @@
 #include <math.h>
 #include <stdbool.h>
 
+#define MAX_PRODUCT_NAME_LENGTH 50
+#define MAX_PRODUCTS 100
+#define SHM_KEY 1111
+
 pid_t ogl_id;
+
+typedef struct {
+    char product_name[MAX_PRODUCT_NAME_LENGTH];
+    int total_amount;
+    int on_shelves;
+    int in_storage;
+} ProductInfo;
 
 void readUserDefined(int *Shelving_Teams, int *Employees_Number, int *Shelf_drop_Threshold, int *Simulation_Time_Threshold)
 {
