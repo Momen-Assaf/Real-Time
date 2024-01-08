@@ -10,7 +10,7 @@ int main(int argc, char *argv[])
         
     }
     else if( ogl_id == 0 ){
-        execlp("./ogl.c", "OPENGL" , NULL);
+        execlp("./ogl", "OPENGL" , NULL);
         perror("Error opening ogl process:");
         exit(EXIT_FAILURE);
     }
@@ -24,7 +24,7 @@ int main(int argc, char *argv[])
             
         }
         else if( shelvteam_id[i] == 0 ){
-            execlp("./shelvingTeam.c", "SHELVING TEAM" , NULL);
+            execlp("./shelvingTeam", "SHELVING TEAM" , NULL);
             perror("Error opening shelving team process:");
             exit(EXIT_FAILURE);
         }
@@ -40,7 +40,7 @@ int main(int argc, char *argv[])
             
         }
         else if( customer_id == 0 ){
-            execlp("./customer.c", "CUSTOMER" , NULL);
+            execlp("./customer", "CUSTOMER" , NULL);
             perror("Error opening customer process:");
             exit(EXIT_FAILURE);
         }
