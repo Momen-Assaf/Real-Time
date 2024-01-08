@@ -1,0 +1,4 @@
+Shelving_Teams: 2
+Employees_Number: 4
+Shelf_drop_Threshold: 1
+Simulation_Time_Threshold: 1
