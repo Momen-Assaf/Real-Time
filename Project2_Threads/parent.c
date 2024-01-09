@@ -109,12 +109,6 @@ void create_shared_memory(key_t key, ProductInfo *shared_product_info, int num_p
 
     // Assign shared memory pointer to the array
     memcpy(shared_product_info, shm_ptr, num_products * sizeof(ProductInfo));
-
-    // Detach shared memory
-    if (shmdt(shm_ptr) == -1) {
-        perror("shmdt");
-        exit(EXIT_FAILURE);
-    }
 }
 
 void initialize_product_info(ProductInfo *shared_product_info, ProductInfo *product_info, int num_products) {
@@ -124,5 +118,49 @@ void initialize_product_info(ProductInfo *shared_product_info, ProductInfo *prod
         shared_product_info[i].total_amount = product_info[i].total_amount;
         shared_product_info[i].on_shelves = 0;
         shared_product_info[i].in_storage = shared_product_info[i].total_amount;
+    }
+}
+
+void display_initial_product_info(ProductInfo *shared_product_info, int num_products) {
+    printf("Initial Product Information:\n");
+    display_product_info(shared_product_info, num_products);
+}
+
+void move_products_to_shelves(ProductInfo *shared_product_info, int index, int amount) {
+    shared_product_info[index].on_shelves += amount;
+    shared_product_info[index].in_storage -= amount;
+}
+
+void display_updated_product_info(ProductInfo *shared_product_info, int num_products) {
+    printf("\nUpdated Product Information:\n");
+    display_product_info(shared_product_info, num_products);
+}
+
+
+
+void display_product_info(ProductInfo *products, int num_products) {
+    printf("%-20s %-15s %-15s %-15s\n", "Product Name", "Total Amount", "On Shelves", "In Storage");
+    for (int i = 0; i < num_products; i++) {
+        printf("%-20s %-15d %-15d %-15d\n",
+               products[i].product_name,
+               products[i].total_amount,
+               products[i].on_shelves,
+               products[i].in_storage);
+    }
+}
+
+void detach_from_shared_memory(ProductInfo *shared_product_info) {
+    
+    // Detach shared memory
+    if (shmdt(shm_ptr) == -1) {
+        perror("shmdt");
+        exit(EXIT_FAILURE);
+    }
+
+    // Delete the shared memory segment
+    if (shmctl(shm_ptr, IPC_RMID, NULL) == -1)
+    {
+        perror("shmctl");
+        exit(EXIT_FAILURE);
     }
 }
