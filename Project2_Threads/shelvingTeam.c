@@ -1,4 +1,5 @@
 #include "header.h"
+#include "shm.h"
 
 int main(int argc, char *argv[])
 {
