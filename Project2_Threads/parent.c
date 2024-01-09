@@ -1,19 +1,25 @@
 #include "header.h"
+#include "shm.h"
 
 int main(int argc, char *argv[])
 {
     int Shelving_Teams, Employees_Number, Shelf_drop_Threshold, Simulation_Time_Threshold = 0;
 
-    // function that reads the userDefined from header.h
+    // function that reads the userDefined 
     readUserDefined(&Shelving_Teams, &Employees_Number, &Shelf_drop_Threshold, &Simulation_Time_Threshold);
 
     int num_products = 0;
     ProductInfo product_info[MAX_PRODUCTS];
+    ProductInfo *shared_product_info;
 
     read_product_info(product_info, &num_products);
-    create_shared_memory(SHM_KEY, product_info, num_products);
-    initialize_product_info(product_info, product_info, num_products);
+    create_shared_memory(SHM_KEY, &shared_product_info, num_products);
+    initialize_product_info(shared_product_info, product_info, num_products);
 
+    display_initial_product_info(shared_product_info, num_products);
+
+    display_updated_product_info(shared_product_info, num_products);
+    detach_from_shared_memory(shared_product_info);
 
     // ogl fork
     ogl_id = fork();
@@ -30,7 +36,7 @@ int main(int argc, char *argv[])
         exit(EXIT_FAILURE);
     }
 
-    //shelving teams fork
+    // shelving teams fork
     pid_t shelvteam_id[Shelving_Teams];
 
     for (int i = 0; i < Shelving_Teams; i++)
@@ -72,95 +78,18 @@ int main(int argc, char *argv[])
     exit(0);
 }
 
-void read_product_info(ProductInfo *product_info, int *num_products) {
-    FILE *file = fopen("items", "r");
-    if (!file) {
-        perror("Error opening file");
-        exit(EXIT_FAILURE);
+void readUserDefined(int *Shelving_Teams, int *Employees_Number, int *Shelf_drop_Threshold, int *Simulation_Time_Threshold)
+{
+    FILE *file = fopen("userDefined.txt", "r");
+    if (file == NULL)
+    {
+        printf("Error opening the file.\n");
+        return;
     }
-
-    // Skip the first line
-    char line[256];
-    if (fgets(line, sizeof(line), file) == NULL) {
-        perror("Error reading from file");
-        fclose(file);
-        exit(EXIT_FAILURE);
-    }
-
-    while (fscanf(file, "%49s %d", product_info[*num_products].product_name, &product_info[*num_products].total_amount) == 2) {
-        (*num_products)++;
-    }
+    fscanf(file, "Shelving_Teams: %d\n", Shelving_Teams);
+    fscanf(file, "Employees_Number: %d\n", Employees_Number);
+    fscanf(file, "Shelf_drop_Threshold: %d\n", Shelf_drop_Threshold);
+    fscanf(file, "Simulation_Time_Threshold: %d\n", Simulation_Time_Threshold);
 
     fclose(file);
-}
-
-void create_shared_memory(key_t key, ProductInfo *shared_product_info, int num_products) {
-    int shmid = shmget(key, num_products * sizeof(ProductInfo), IPC_CREAT | 0666);
-    if (shmid == -1) {
-        perror("shmget");
-        exit(EXIT_FAILURE);
-    }
-
-    ProductInfo *shm_ptr = (ProductInfo *)shmat(shmid, NULL, 0);
-    if ((void *)shm_ptr == (void *)-1) {
-        perror("shmat");
-        exit(EXIT_FAILURE);
-    }
-
-    // Assign shared memory pointer to the array
-    memcpy(shared_product_info, shm_ptr, num_products * sizeof(ProductInfo));
-}
-
-void initialize_product_info(ProductInfo *shared_product_info, ProductInfo *product_info, int num_products) {
-    for (int i = 0; i < num_products; i++) {
-        strncpy(shared_product_info[i].product_name, product_info[i].product_name, sizeof(shared_product_info[i].product_name) - 1);
-        shared_product_info[i].product_name[sizeof(shared_product_info[i].product_name) - 1] = '\0';
-        shared_product_info[i].total_amount = product_info[i].total_amount;
-        shared_product_info[i].on_shelves = 0;
-        shared_product_info[i].in_storage = shared_product_info[i].total_amount;
-    }
-}
-
-void display_initial_product_info(ProductInfo *shared_product_info, int num_products) {
-    printf("Initial Product Information:\n");
-    display_product_info(shared_product_info, num_products);
-}
-
-void move_products_to_shelves(ProductInfo *shared_product_info, int index, int amount) {
-    shared_product_info[index].on_shelves += amount;
-    shared_product_info[index].in_storage -= amount;
-}
-
-void display_updated_product_info(ProductInfo *shared_product_info, int num_products) {
-    printf("\nUpdated Product Information:\n");
-    display_product_info(shared_product_info, num_products);
-}
-
-
-
-void display_product_info(ProductInfo *products, int num_products) {
-    printf("%-20s %-15s %-15s %-15s\n", "Product Name", "Total Amount", "On Shelves", "In Storage");
-    for (int i = 0; i < num_products; i++) {
-        printf("%-20s %-15d %-15d %-15d\n",
-               products[i].product_name,
-               products[i].total_amount,
-               products[i].on_shelves,
-               products[i].in_storage);
-    }
-}
-
-void detach_from_shared_memory(ProductInfo *shared_product_info) {
-    
-    // Detach shared memory
-    if (shmdt(shm_ptr) == -1) {
-        perror("shmdt");
-        exit(EXIT_FAILURE);
-    }
-
-    // Delete the shared memory segment
-    if (shmctl(shm_ptr, IPC_RMID, NULL) == -1)
-    {
-        perror("shmctl");
-        exit(EXIT_FAILURE);
-    }
 }

@@ -24,25 +24,6 @@
 
 pid_t ogl_id;
 
-typedef struct {
-    char product_name[MAX_PRODUCT_NAME_LENGTH];
-    int total_amount;
-    int on_shelves;
-    int in_storage;
-} ProductInfo;
+int shmid;
 
-void readUserDefined(int *Shelving_Teams, int *Employees_Number, int *Shelf_drop_Threshold, int *Simulation_Time_Threshold)
-{
-    FILE *file = fopen("userDefined.txt", "r");
-    if (file == NULL)
-    {
-        printf("Error opening the file.\n");
-        return;
-    }
-    fscanf(file, "Shelving_Teams: %d\n", Shelving_Teams);
-    fscanf(file, "Employees_Number: %d\n", Employees_Number);
-    fscanf(file, "Shelf_drop_Threshold: %d\n", Shelf_drop_Threshold);
-    fscanf(file, "Simulation_Time_Threshold: %d\n", Simulation_Time_Threshold);
 
-    fclose(file);
-}

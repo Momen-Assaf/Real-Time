@@ -71,7 +71,10 @@
     "time.h": "c",
     "semaphore.h": "c",
     "string.h": "c",
-    "stdbool.h": "c"
+    "stdbool.h": "c",
+    "glut.h": "c",
+    "header.h": "c",
+    "shm.h": "c"
   },
   "C_Cpp.errorSquiggles": "disabled"
 }
