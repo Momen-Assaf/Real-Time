@@ -8,6 +8,10 @@ typedef struct
     int in_storage;
 } ProductInfo;
 
+int num_products = 0;
+ProductInfo product_info[MAX_PRODUCTS];
+ProductInfo *shared_product_info;
+
 void read_product_info(ProductInfo *product_info, int *num_products)
 {
     FILE *file = fopen("items", "r");
@@ -66,6 +70,12 @@ void display_initial_product_info(ProductInfo *shared_product_info, int num_prod
 {
     printf("Initial Product Information:\n");
     display_product_info(shared_product_info, num_products);
+}
+
+void move_products_to_shelves(ProductInfo *shared_product_info, int index, int amount)
+{
+    shared_product_info[index].on_shelves += amount;
+    shared_product_info[index].in_storage -= amount;
 }
 
 void display_updated_product_info(ProductInfo *shared_product_info, int num_products)

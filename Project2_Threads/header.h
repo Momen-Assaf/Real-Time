@@ -25,5 +25,4 @@
 pid_t ogl_id;
 
 int shmid;
-
-
+int Shelving_Teams, Shelf_Amount, Employees_Number, Shelf_drop_Threshold, Simulation_Time_Threshold;
