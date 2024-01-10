@@ -3,11 +3,17 @@
 
 int main(int argc, char *argv[])
 {
+    int Shelving_Teams, Shelf_Amount, Employees_Number, Shelf_drop_Threshold, Simulation_Time_Threshold;
+    int shmid;
     // function that reads the userDefined
     readUserDefined(&Shelving_Teams, &Shelf_Amount, &Employees_Number, &Shelf_drop_Threshold, &Simulation_Time_Threshold);
 
+    int num_products = 0;
+    ProductInfo product_info[MAX_PRODUCTS];
+    ProductInfo *shared_product_info;
+
     read_product_info(product_info, &num_products);
-    create_shared_memory(SHM_KEY, &shared_product_info, num_products);
+    shmid = create_shared_memory(&shared_product_info, num_products);
     initialize_product_info(shared_product_info, product_info, num_products);
 
     for (int i = 0; i < num_products; i++)
@@ -18,10 +24,9 @@ int main(int argc, char *argv[])
     display_initial_product_info(shared_product_info, num_products);
 
     // display_updated_product_info(shared_product_info, num_products);
-    detach_from_shared_memory(shared_product_info);
 
     // ogl fork
-    ogl_id = fork();
+    pid_t ogl_id = fork();
 
     if (ogl_id < 0)
     {
@@ -40,6 +45,8 @@ int main(int argc, char *argv[])
 
     for (int i = 0; i < Shelving_Teams; i++)
     {
+        char str_product[20];
+        sprintf(str_product, "%d", num_products);
         shelvteam_id[i] = fork();
 
         if (shelvteam_id[i] < 0)
@@ -49,7 +56,7 @@ int main(int argc, char *argv[])
         }
         else if (shelvteam_id[i] == 0)
         {
-            execlp("./shelvingTeam", "SHELVING TEAM", NULL);
+            execlp("./shelvingTeam", "SHELVING TEAM", str_product, NULL);
             perror("Error opening shelving team process:");
             exit(EXIT_FAILURE);
         }
@@ -74,6 +81,8 @@ int main(int argc, char *argv[])
         }
         break;
     }
+    sleep(1);
+    detach_from_shared_memory(shared_product_info, shmid);
     exit(0);
 }
 

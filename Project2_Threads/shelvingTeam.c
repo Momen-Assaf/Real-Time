@@ -1,10 +1,23 @@
 #include "header.h"
 #include "shm.h"
 
-void *teamManagerFunction(void *arg)
+int Shelving_Teams, Shelf_Amount, Employees_Number, Shelf_drop_Threshold, Simulation_Time_Threshold;
+int num_products = 0;
+
+void *teamManagerFunction(ProductInfo **shared_product_info)
 {
     // Team manager's code goes here
     printf("Team Manager is managing.\n");
+    display_initial_product_info(shared_product_info, num_products);
+
+    for (int i = 0; i < num_products; i++)
+    {
+        printf("%-15d\n", shared_product_info[i]->on_shelves);
+        if (shared_product_info[i]->on_shelves <= Shelf_drop_Threshold)
+        {
+        }
+    }
+
     return NULL;
 }
 
@@ -18,19 +31,26 @@ void *employeeFunction(void *arg)
 
 int main(int argc, char *argv[])
 {
+
     // function that reads the userDefined
     readUserDefined(&Shelving_Teams, &Shelf_Amount, &Employees_Number, &Shelf_drop_Threshold, &Simulation_Time_Threshold);
 
-    pthread_t teamManagerThread;
-    pthread_t employeeThreads[Employees_Number];
+    ProductInfo product_info[MAX_PRODUCTS];
+    ProductInfo *shared_product_info;
 
+    sscanf(argv[1], "%d", &num_products);
+
+    attach_shared_memory(&shared_product_info, num_products);
+
+    pthread_t teamManagerThread;
     // Create teamManager thread
-    if (pthread_create(&teamManagerThread, NULL, teamManagerFunction, NULL) != 0)
+    if (pthread_create(&teamManagerThread, NULL, teamManagerFunction, shared_product_info)!= 0)
     {
         perror("Error creating teamManager thread");
         return 1;
     }
 
+    pthread_t employeeThreads[Employees_Number];
     // Create employee threads
     for (int i = 0; i < Employees_Number; i++)
     {
@@ -49,7 +69,7 @@ int main(int argc, char *argv[])
         perror("Error joining teamManager thread");
         return 1;
     }
-
+    // printf("%d",Employees_Number);
     // Wait for employee threads to finish
     for (int i = 0; i < Employees_Number; i++)
     {

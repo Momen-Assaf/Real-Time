@@ -76,7 +76,9 @@
     "header.h": "c",
     "shm.h": "c",
     "types.h": "c",
-    "wait.h": "c"
+    "wait.h": "c",
+    "sstream": "c",
+    "ipc.h": "c"
   },
   "C_Cpp.errorSquiggles": "disabled"
 }

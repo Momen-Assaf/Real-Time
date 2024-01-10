@@ -16,13 +16,10 @@
 #include <semaphore.h>
 #include <GL/glut.h>
 #include <math.h>
+#include <errno.h>
 #include <stdbool.h>
+#include <pthread.h>
 
 #define MAX_PRODUCT_NAME_LENGTH 50
 #define MAX_PRODUCTS 100
 #define SHM_KEY 1111
-
-pid_t ogl_id;
-
-int shmid;
-int Shelving_Teams, Shelf_Amount, Employees_Number, Shelf_drop_Threshold, Simulation_Time_Threshold;

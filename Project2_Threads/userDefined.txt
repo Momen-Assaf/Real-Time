@@ -1,5 +1,5 @@
 Shelving_Teams: 2
 Shelf_Amount: 3
-Employees_Number: 4
+Employees_Number: 2
 Shelf_drop_Threshold: 1
 Simulation_Time_Threshold: 1
