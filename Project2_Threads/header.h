@@ -19,6 +19,7 @@
 #include <errno.h>
 #include <stdbool.h>
 #include <pthread.h>
+#include <stdbool.h>
 
 #define MAX_PRODUCT_NAME_LENGTH 50
 #define MAX_PRODUCTS 100

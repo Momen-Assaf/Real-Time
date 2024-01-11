@@ -20,9 +20,8 @@ int main(int argc, char *argv[])
     mutex = sem_open("/mutex_sem", O_CREAT, 0666, 5);
     buy_sem = sem_open("/buy_sem", O_CREAT, 0666, 5);
 
-
     read_product_info(product_info, &num_products);
-    shmid = create_shared_memory(SHM_KEY,&shared_product_info, num_products);
+    shmid = create_shared_memory(SHM_KEY, &shared_product_info, num_products);
     initialize_product_info(shared_product_info, product_info, num_products);
 
     for (int i = 0; i < num_products; i++)
@@ -34,6 +33,9 @@ int main(int argc, char *argv[])
 
     // display_updated_product_info(shared_product_info, num_products);
 
+    char str_product[20];
+    sprintf(str_product, "%d", num_products);
+
     // ogl fork
     pid_t ogl_id = fork();
 
@@ -44,12 +46,10 @@ int main(int argc, char *argv[])
     }
     else if (ogl_id == 0)
     {
-        execlp("./ogl", "OPENGL", NULL);
+        execlp("./ogl", "OPENGL",num_products , NULL);
         perror("Error opening ogl process:");
         exit(EXIT_FAILURE);
     }
-    char str_product[20];
-    sprintf(str_product, "%d", num_products);
 
     // shelving teams fork
     pid_t shelvteam_id[Shelving_Teams];
@@ -70,7 +70,7 @@ int main(int argc, char *argv[])
             exit(EXIT_FAILURE);
         }
     }
-    int a = 5;
+    int a = 10;
     // customers fork
     while (1)
     {
@@ -89,12 +89,15 @@ int main(int argc, char *argv[])
             exit(EXIT_SUCCESS);
         }
         a--;
-        if (a == 0)break;
+        if (a == 0)
+            break;
     }
     // Wait for all child processes to finish
-    for (int i = 0; i < 10; i++) {
+    for (int i = 0; i < 10; i++)
+    {
         wait(NULL);
     }
+    // sleep(20);
     sem_close(mutex);
     sem_close(buy_sem);
     sem_unlink("/mutex_sem");
@@ -125,26 +128,40 @@ void readUserDefined(int *Shelving_Teams, int *Shelf_Amount, int *Employees_Numb
 void customer_process(ProductInfo *shared_product_info, int num_products)
 {
     int customer_id = getpid();
-    srand(customer_id); // Set a different seed for each customer
 
+    srand(customer_id); // Set a different seed for each customer
     sleep(rand() % 5); // Sleep for a random time
 
     printf("Customer %d says hi!\n", customer_id);
 
-    int product_index = rand() % num_products;
-    int amount_to_remove = rand() % shared_product_info[product_index].on_shelves + 1;
+    int num_purchases = rand() % 5 + 1; // Buy a random number of items (1 to 5)
 
     sem_wait(buy_sem); // Wait for permission to buy
-
     sem_wait(mutex); // Enter critical section
 
-    // Adjust the comment to reflect the action
-    printf("Customer %d bought %d units of %s.\n", customer_id, amount_to_remove, shared_product_info[product_index].product_name);
+    // Array to keep track of products already bought
+    bool products_bought[MAX_PRODUCTS] = {false};
 
-    shared_product_info[product_index].on_shelves -= amount_to_remove;
-    shared_product_info[product_index].total_amount -= amount_to_remove;
+    for (int i = 0; i < num_purchases; i++)
+    {
+        int product_index;
+        // Find a product that hasn't been bought yet
+        do
+        {
+            product_index = rand() % num_products;
 
+        } while (products_bought[product_index]);
+
+        products_bought[product_index] = true;
+
+        int amount_to_remove = rand() % shared_product_info[product_index].on_shelves + 1;
+        // Adjust the comment to reflect the action
+        printf("Customer %d bought %d units of %s.\n", customer_id, amount_to_remove,
+               shared_product_info[product_index].product_name);
+
+        shared_product_info[product_index].on_shelves -= amount_to_remove;
+        shared_product_info[product_index].total_amount -= amount_to_remove;
+    }
     sem_post(mutex); // Exit critical section
-
     sem_post(buy_sem); // Release permission to buy
 }
