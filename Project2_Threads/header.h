@@ -23,3 +23,6 @@
 #define MAX_PRODUCT_NAME_LENGTH 50
 #define MAX_PRODUCTS 100
 #define SHM_KEY 1111
+#define BUFF_SHM_KEY 2222
+
+

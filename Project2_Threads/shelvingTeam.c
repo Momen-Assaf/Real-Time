@@ -8,7 +8,7 @@ void *teamManagerFunction(ProductInfo **shared_product_info)
 {
     // Team manager's code goes here
     printf("Team Manager is managing.\n");
-    display_initial_product_info(shared_product_info, num_products);
+    // display_initial_product_info(shared_product_info, num_products);
 
     for (int i = 0; i < num_products; i++)
     {
@@ -40,7 +40,10 @@ int main(int argc, char *argv[])
 
     sscanf(argv[1], "%d", &num_products);
 
+    // int shmid = create_shared_memory(BUFF_SHM_KEY,&shared_product_info, num_products);
+
     attach_shared_memory(&shared_product_info, num_products);
+
 
     pthread_t teamManagerThread;
     // Create teamManager thread

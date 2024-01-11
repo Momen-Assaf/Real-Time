@@ -27,9 +27,9 @@ void read_product_info(ProductInfo *product_info, int *num_products)
     fclose(file);
 }
 
-int create_shared_memory(ProductInfo **shared_product_info, int num_products)
+int create_shared_memory(int key, ProductInfo **shared_product_info, int num_products)
 {
-    int shmid = shmget(SHM_KEY, num_products * sizeof(ProductInfo), IPC_CREAT | 0666);
+    int shmid = shmget(key, num_products * sizeof(ProductInfo), IPC_CREAT | 0666);
     if (shmid == -1)
     {
         perror("shmget");

@@ -3,7 +3,8 @@
 
 #include "header.h"
 
-typedef struct {
+typedef struct
+{
     char product_name[50];
     int total_amount;
     int on_shelves;
@@ -12,7 +13,7 @@ typedef struct {
 
 // Function prototypes
 void read_product_info(ProductInfo *product_info, int *num_products);
-int create_shared_memory(ProductInfo **shared_product_info, int num_products);
+int create_shared_memory(int key, ProductInfo **shared_product_info, int num_products);
 void attach_shared_memory(ProductInfo **shared_product_info, int num_products);
 void initialize_product_info(ProductInfo *shared_product_info, ProductInfo *product_info, int num_products);
 void display_initial_product_info(ProductInfo *shared_product_info, int num_products);
